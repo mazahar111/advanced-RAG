@@ -1,0 +1,68 @@
+# This config guides synthetic evaluation-question generation. It does not
+# configure the format or completeness of answers from an interactive RAG app.
+domain: "patent applications and inventions across technical fields"
+
+users:
+  - name: technology_researcher
+    description: >-
+      A researcher or analyst searching a patent collection to find inventions
+      related to a technology. Uses plain language and wants to know what each
+      relevant patent describes.
+    weight: 1
+
+questions:
+  - name: technology_discovery
+    description: >-
+      Ask what technology or application the patent describes, or whether it
+      relates to a named area such as blockchain or machine learning. Ask what
+      the invention does and what text supports the connection. Keep each
+      question answerable from its source passage; do not ask for a complete
+      list of patents or to prove that no matching patent exists.
+    weight: 4
+  - name: technical_detail
+    description: >-
+      Ask a focused technical question that the passage directly answers, but
+      prefer the invention's purpose or technology area over narrow claim
+      wording.
+    weight: 1
+
+phrasings:
+  - name: natural
+    description: "A complete, plain-language technology-discovery question."
+    weight: 3
+  - name: keywords
+    description: "A short search-style query naming a technology or application."
+    weight: 1
+
+few_shot:
+  - "What technology does this patent describe, and what does it do?"
+  - "Does this patent relate to blockchain? What in the text supports that?"
+  - "Does this patent describe a machine-learning approach? What is it used for?"
+  - "Which part of this patent explains the technology it applies to?"
+
+scope: corpus
+
+# These are application-specific settings. The BYOC question generator does
+# not apply them; a patent-answering application must read and use them.
+extra:
+  patent_assistant:
+    retrieval_instructions: |-
+      Search the full patent collection for records related to the technology
+      named by the user. Consider relevant terms and synonyms. Check each
+      candidate patent's text before deciding it matches. Do not treat a
+      limited top-results search as a complete list.
+
+    answer_instructions: |-
+      For a request to list patents related to a technology, return one entry
+      per supported matching patent. Include the application number, title,
+      brief reason it matches, an exact supporting quote, and the source
+      document. Only include a patent when its retrieved text supports the
+      match. Never invent application numbers or evidence. If the search was
+      limited, label the results as partial; do not claim the list is complete.
+
+    result_fields:
+      - application_number
+      - title
+      - reason_for_match
+      - supporting_quote
+      - source_document
